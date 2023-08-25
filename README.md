@@ -1,2 +1,2 @@
 # recsys_utils
-Utility functions of Recommendations Systems
+Utility functions for Recommendations Systems
