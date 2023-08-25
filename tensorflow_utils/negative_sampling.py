@@ -48,17 +48,18 @@ class InBatchNegativeSampling(tf.keras.layers.Layer):
         query_embeddings, item_embeddings = inputs
 
         # in-batch negative sampling
-        negative_samples = random.sample(range(1, self.batch_size), self.n_negative_sample)
+        negative_samples = random.sample(population=range(1, self.batch_size), k=self.n_negative_sample)
 
         item_temp_embeddings = item_embeddings
 
         # slice and concatenate negative samples
         for a_sample in negative_samples:
-            item_embeddings = tf.concat([item_embeddings,
-                                         tf.slice(item_temp_embeddings, begin=[a_sample, 0], size=[self.batch_size - a_sample, -1]),
-                                         tf.slice(item_temp_embeddings, begin=[0, 0], size=[a_sample, -1])], 0)
+            item_embeddings = tf.concat(values=[item_embeddings,
+                                         tf.slice(input=item_temp_embeddings, begin=[a_sample, 0], size=[self.batch_size - a_sample, -1]),
+                                         tf.slice(input=item_temp_embeddings, begin=[0, 0], size=[a_sample, -1])], 
+                                         axis=0)
 
-        query_embeddings_neg = tf.tile(query_embeddings, [self.n_negative_sample + 1, 1])
+        query_embeddings_neg = tf.tile(input=query_embeddings, multiples=[self.n_negative_sample + 1, 1])
 
         return query_embeddings_neg, item_embeddings
 
@@ -248,7 +249,7 @@ class InBatchNegativeSamplingCosineSimilarity(tf.keras.layers.Layer):
         scores = tf.multiply(scores, self.scaling_constant)
 
         scores = tf.transpose(
-            tf.reshape(tf.transpose(scores), [self.n_negative_sample + 1, self.batch_size]))
+            tf.reshape(tensor=tf.transpose(scores), shape=[self.n_negative_sample + 1, self.batch_size]))
 
         # Calculate probability value
         scores = tf.nn.softmax(scores/self.temperature)
